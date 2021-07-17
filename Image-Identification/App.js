@@ -1,7 +1,9 @@
 import React ,{useState , useEffect , useRef} from 'react'
 import * as tf from '@tensorflow/tfjs'
 import * as mobilenet from '@tensorflow-models/mobilenet';
+import { useSpeechSynthesis } from 'react-speech-kit';
 import './App.css'
+import axios from 'axios';
 const App = () => {
 
 const [load, setLoad] = useState(false);
@@ -13,6 +15,9 @@ const [results, setResults] = useState([])
 const fileInputRef = useRef(null)
 const imageRef=useRef(null)
 const textInputRef=useRef(null)
+
+const { speak } = useSpeechSynthesis();
+
 
 const loadModel=async ()=>{
   setLoad(true)
@@ -53,15 +58,25 @@ useEffect(() => {
 
   }
 
+  const randomSearch= async (val)=>{
+      const search= await axios.get(`https://www.googleapis.com/customsearch/v1?key=${process.env.REACT_APP_GOOGLE_KEY}&cx=${process.env.REACT_APP_SEARCH_ID}&q=${val}`)
+      console.log(search.data.items[0].snippet)
+      speak({ text: search.data.items[0].snippet })
+  }
+
   const identifyImage= async ()=>{
     fileInputRef.current.value=""
     textInputRef.current.value=""
     const result= await model.classify(imageRef.current)
+    // console.log(result[0].className)
+    randomSearch(result[0].className)
+    speak({ text: "Hi user , According to me this image looks like " + result[0].className })
+    
     setResults(result)
 
   }
 
-  console.log(results)
+  // console.log(results)
 
 
 
